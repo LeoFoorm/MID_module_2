@@ -419,6 +419,15 @@ cout << "\n"<< endl;
     }
 
 
+/*Rango 1 (0.1 GeV - 0.34 GeV):     
+Rango 2 (0.34 GeV - 0.58 GeV):     
+Rango 3 (0.58 GeV - 0.82 GeV):     
+Rango 4 (0.82 GeV - 1.06 GeV):    
+Rango 5 (1.06 GeV - 1.3 GeV):    
+Rango 7 (1.54 GeV - 1.78 GeV):    
+Rango 8 (1.78 GeV - 2.02 GeV):     
+Rango 9 (2.02 GeV - 2.26 GeV):
+Rango 10 (2.26 GeV - 2.5 GeV) */
 
 
 
@@ -429,7 +438,6 @@ cout << "\n"<< endl;
 
 
 
-    
 }
 
 
