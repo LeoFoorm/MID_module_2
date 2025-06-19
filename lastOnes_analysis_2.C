@@ -22,7 +22,7 @@ void lastOnes_analysis_2()
     //------------- add your ROOT file -------------
 
     TFile *file = TFile::Open("mu_0.1_2.5_20gap_Abs_70thick.root", "READ"); 
-    //TFile *file = TFile::Open("Output0_t0.root", "READ"); 
+   // TFile *file = TFile::Open("Output0_t0.root", "READ"); 
 
 
 //------------- Get the TTree of the file -------------
@@ -349,8 +349,9 @@ for (Long64_t i = 0; i < nEntries; ++i) {
         HitCounts[momentumRange]++;
     }
 }
-
-    vector<Double_t> xValues;
+//===========================================
+    vector<Double_t> xValues;           //===
+//===========================================
     vector<Double_t> yValues;
 
     cout<< "\n MUONES CON ABSORBER \n" <<endl;
@@ -371,7 +372,7 @@ for (Long64_t i = 0; i < nEntries; ++i) {
 cout << "\n"<< endl;
 
 
-//-------------------------------------------  EFICIENCIA  -----------------------------------------
+//......................................  EFFICIENCY PLOT  ...................................... 
 
     TCanvas* canvas_7 = new TCanvas("Efficiency_canvas_7", "Efficiency vs Transverse Momentum for muons with absorber", 1600, 1200);
     TGraph* SiAbs = new TGraph(xValues.size(), &xValues[0], &yValues[0]);
@@ -404,19 +405,152 @@ cout << "\n"<< endl;
 
 //================================================  MEAN ENERGY  ========================================================
  vector<Double_t> edep(10, 0); 
+ vector<Double_t> edep_A(10, 0);
+ vector<Double_t> edep_B(10, 0);
 
  for (Long64_t i = 0; i < nEntries; ++i) {
 
     tree->GetEntry(i);
     int momentumRange = -1;
+
     for (int j = 0; j < 10; ++j) {
         if (particleMomentum >= momentumEdges[j] && particleMomentum < momentumEdges[j+1]) {
             momentumRange = j;
             break;
             }
         }
-        edep[momentumRange]+= total_energy_deposition;   
+        if(Hit == 1){
+        edep[momentumRange]+= total_energy_deposition;
+        }  
+        edep_A[momentumRange] += total_edep_layer_A;
+        edep_B[momentumRange] += total_edep_layer_B;
     }
+
+vector<Double_t> yValues_mean_energy;
+for (int i = 0; i < 10; ++i) {
+        double avgEnergy = (HitCounts[i] > 0) ? edep[i] / HitCounts[i] : 0.0;
+        yValues_mean_energy.push_back(avgEnergy);
+         
+         cout << "Rango " << i + 1 << " (" << (i * 0.24) + 0.1 << " GeV - " << ((i + 1) * 0.24) + 0.1
+             << " GeV):     " << HitCounts[i] << " hits,        " << edep[i] << "  suma de energia depositada. " 
+             << "       Promedio:     " << avgEnergy << " MeV " << endl; 
+    }
+cout << "\n"<< endl; 
+
+//------------------------------------------------------------------------------------------------------------------
+vector<Double_t> yValues_mean_energy_A;
+for (int i = 0; i < 10; ++i) {
+        double avgEnergy_A = (HitCounts[i] > 0) ? edep_A[i] / HitCounts[i] : 0.0;
+        yValues_mean_energy_A.push_back(avgEnergy_A);
+         
+         cout << "Rango " << i + 1 << " (" << (i * 0.24) + 0.1 << " GeV - " << ((i + 1) * 0.24) + 0.1
+             << " GeV):     " << HitCounts[i] << " hits,        " << edep_A[i] << "  suma de energia depositada en A. " 
+             << "       Promedio:     " << avgEnergy_A << " MeV " << endl; 
+    }
+cout << "\n"<< endl; 
+
+//------------------------------------------------------------------------------------------------------------------
+vector<Double_t> yValues_mean_energy_B;
+for (int i = 0; i < 10; ++i) {
+        double avgEnergy_B = (HitCounts[i] > 0) ? edep_B[i] / HitCounts[i] : 0.0;
+        yValues_mean_energy_B.push_back(avgEnergy_B);
+        
+         
+         cout << "Rango " << i + 1 << " (" << (i * 0.24) + 0.1 << " GeV - " << ((i + 1) * 0.24) + 0.1
+             << " GeV):     " << HitCounts[i] << " hits,        " << edep_B[i] << "  suma de energia depositada en B. " 
+             << "       Promedio:     " << avgEnergy_B << " MeV " << endl; 
+    }
+cout << "\n"<< endl; 
+
+
+
+//...................................|  MEAN ENERGY PLOTS  |...................................
+
+TCanvas* canvas_8 = new TCanvas("average_edep_canvas_8", "Average Energy Loss vs Transverse Momentum for muons with absorber", 1600, 1200);
+    TGraph* graph_8 = new TGraph(xValues.size(), &xValues[0], &yValues_mean_energy[0]);
+    //TGraph* NoAbs = new TGraph(xValues2.size(), &xValues2[0], &yValues2[0]);
+    graph_8->SetTitle("Average Energy Loss vs Transverse Momentum for Muons with absorber");
+    graph_8->SetMarkerStyle(22);
+    graph_8->SetMarkerColor(kBlue-2); 
+    graph_8->SetMarkerSize(1.5);
+    graph_8->GetXaxis()->SetTitle("Momentum [GeV]");
+  
+    graph_8->GetYaxis()->SetTitle("Average Energy Loss [MeV]");
+
+    graph_8->Draw("AP");
+
+    //NoAbs->SetMarkerStyle(21);
+    //NoAbs->SetMarkerColor(kBlue);
+    
+    //NoAbs->Draw("P SAME");
+
+    // Añadir leyenda
+    TLegend* legend_8 = new TLegend(0.7, 0.7, 0.9, 0.9);
+    legend_8->AddEntry(graph_8, "WITH ABSORBER", "lp");
+    //legend->AddEntry(NoAbs, "NO ABSORBER", "lp");
+    legend_8->Draw();
+
+    canvas_8->SetGrid();
+    canvas_8->Update();
+
+
+
+TCanvas* canvas_9 = new TCanvas("average_edep_canvas_9", "Average Energy Loss vs Transverse Momentum for muons with absorber in Layer A", 1600, 1200);
+    TGraph* graph_9 = new TGraph(xValues.size(), &xValues[0], &yValues_mean_energy_A[0]);
+    //TGraph* NoAbs = new TGraph(xValues2.size(), &xValues2[0], &yValues2[0]);
+    graph_9->SetTitle("Average Energy Loss vs Transverse Momentum for Muons with absorber  in Layer A");
+    graph_9->SetMarkerStyle(22);
+    graph_9->SetMarkerColor(kRed+2); 
+    graph_9->SetMarkerSize(1.5);
+    graph_9->GetXaxis()->SetTitle("Momentum [GeV]");
+  
+    graph_9->GetYaxis()->SetTitle("Average Energy Loss in Layer A [MeV]");
+
+    graph_9->Draw("AP");
+
+    //NoAbs->SetMarkerStyle(21);
+    //NoAbs->SetMarkerColor(kBlue);
+    
+    //NoAbs->Draw("P SAME");
+
+    // Añadir leyenda
+    TLegend* legend_9 = new TLegend(0.7, 0.7, 0.9, 0.9);
+    legend_9->AddEntry(graph_9, "WITH ABSORBER", "lp");
+    //legend->AddEntry(NoAbs, "NO ABSORBER", "lp");
+    legend_9->Draw();
+
+    canvas_9->SetGrid();
+    canvas_9->Update();
+
+
+
+TCanvas* canvas_10 = new TCanvas("average_edep_canvas_10", "Average Energy Loss vs Transverse Momentum for muons with absorber  in Layer B", 1600, 1200);
+    TGraph* graph_10 = new TGraph(xValues.size(), &xValues[0], &yValues_mean_energy_B[0]);
+    //TGraph* NoAbs = new TGraph(xValues2.size(), &xValues2[0], &yValues2[0]);
+    graph_10->SetTitle("Average Energy Loss vs Transverse Momentum for Muons with absorber in Layer B");
+    graph_10->SetMarkerStyle(22);
+    graph_10->SetMarkerColor(kViolet-6); 
+    graph_10->SetMarkerSize(1.5);
+    graph_10->GetXaxis()->SetTitle("Momentum [GeV]");
+  
+    graph_10->GetYaxis()->SetTitle("Average Energy Loss in Layer B [MeV]");
+
+    graph_10->Draw("AP");
+
+    //NoAbs->SetMarkerStyle(21);
+    //NoAbs->SetMarkerColor(kBlue);
+    
+    //NoAbs->Draw("P SAME");
+
+    // Añadir leyenda
+    TLegend* legend_10 = new TLegend(0.7, 0.7, 0.9, 0.9);
+    legend_10->AddEntry(graph_10, "WITH ABSORBER", "lp");
+    //legend->AddEntry(NoAbs, "NO ABSORBER", "lp");
+    legend_10->Draw();
+
+    canvas_10->SetGrid();
+    canvas_10->Update();
+
 
 
 /*Rango 1 (0.1 GeV - 0.34 GeV):     
