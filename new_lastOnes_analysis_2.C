@@ -17,12 +17,12 @@
 
 using namespace std;
 
-void lastOnes_analysis_2()
+void new_lastOnes_analysis_2()
 {
     //------------- add your ROOT file -------------
 
     TFile *file = TFile::Open("mu_0.1_2.5_20gap_Abs_70thick.root", "READ"); 
-    //TFile *file = TFile::Open("Output0_t0.root", "READ"); 
+   // TFile *file = TFile::Open("Output0_t0.root", "READ"); 
 
 
 //------------- Get the TTree of the file -------------
@@ -310,6 +310,7 @@ double_t counter_hits = 0;
         counter_hits += Hit; 
        
     }
+    cout <<""<<  endl;
     cout<<"TOTAL HITS: "<< counter_hits <<endl;
 
 hit1->GetXaxis()->SetTitle("Hit");
@@ -349,8 +350,9 @@ for (Long64_t i = 0; i < nEntries; ++i) {
         HitCounts[momentumRange]++;
     }
 }
-
-    vector<Double_t> xValues;
+//===========================================
+    vector<Double_t> xValues;           //===
+//===========================================
     vector<Double_t> yValues;
 
     cout<< "\n MUONES CON ABSORBER \n" <<endl;
@@ -371,7 +373,7 @@ for (Long64_t i = 0; i < nEntries; ++i) {
 cout << "\n"<< endl;
 
 
-//-------------------------------------------  EFICIENCIA  -----------------------------------------
+//......................................  EFFICIENCY PLOT  ...................................... 
 
     TCanvas* canvas_7 = new TCanvas("Efficiency_canvas_7", "Efficiency vs Transverse Momentum for muons with absorber", 1600, 1200);
     TGraph* SiAbs = new TGraph(xValues.size(), &xValues[0], &yValues[0]);
@@ -404,39 +406,380 @@ cout << "\n"<< endl;
 
 //================================================  MEAN ENERGY  ========================================================
  vector<Double_t> edep(10, 0); 
+ vector<Double_t> edep_A(10, 0);
+ vector<Double_t> edep_B(10, 0);
 
  for (Long64_t i = 0; i < nEntries; ++i) {
 
     tree->GetEntry(i);
     int momentumRange = -1;
+
     for (int j = 0; j < 10; ++j) {
         if (particleMomentum >= momentumEdges[j] && particleMomentum < momentumEdges[j+1]) {
             momentumRange = j;
             break;
             }
         }
-        edep[momentumRange]+= total_energy_deposition;   
+        if(Hit == 1){
+        edep[momentumRange]+= total_energy_deposition;
+        }  
+        edep_A[momentumRange] += total_edep_layer_A;
+        edep_B[momentumRange] += total_edep_layer_B;
     }
 
+vector<Double_t> yValues_mean_energy;
+for (int i = 0; i < 10; ++i) {
+        double avgEnergy = (HitCounts[i] > 0) ? edep[i] / HitCounts[i] : 0.0;
+        yValues_mean_energy.push_back(avgEnergy);
+         
+         cout << "Rango " << i + 1 << " (" << (i * 0.24) + 0.1 << " GeV - " << ((i + 1) * 0.24) + 0.1
+             << " GeV):     " << HitCounts[i] << " hits,        " << edep[i] << "  suma de energia depositada. " 
+             << "       Promedio:     " << avgEnergy << " MeV " << endl; 
+    }
+cout << "\n"<< endl; 
 
-/*Rango 1 (0.1 GeV - 0.34 GeV):     
-Rango 2 (0.34 GeV - 0.58 GeV):     
-Rango 3 (0.58 GeV - 0.82 GeV):     
-Rango 4 (0.82 GeV - 1.06 GeV):    
-Rango 5 (1.06 GeV - 1.3 GeV):    
-Rango 7 (1.54 GeV - 1.78 GeV):    
-Rango 8 (1.78 GeV - 2.02 GeV):     
-Rango 9 (2.02 GeV - 2.26 GeV):
-Rango 10 (2.26 GeV - 2.5 GeV) */
+//------------------------------------------------------------------------------------------------------------------
+vector<Double_t> yValues_mean_energy_A;
+for (int i = 0; i < 10; ++i) {
+        double avgEnergy_A = (HitCounts[i] > 0) ? edep_A[i] / HitCounts[i] : 0.0;
+        yValues_mean_energy_A.push_back(avgEnergy_A);
+         
+         cout << "Rango " << i + 1 << " (" << (i * 0.24) + 0.1 << " GeV - " << ((i + 1) * 0.24) + 0.1
+             << " GeV):     " << HitCounts[i] << " hits,        " << edep_A[i] << "  suma de energia depositada en A. " 
+             << "       Promedio:     " << avgEnergy_A << " MeV " << endl; 
+    }
+cout << "\n"<< endl; 
+
+//------------------------------------------------------------------------------------------------------------------
+vector<Double_t> yValues_mean_energy_B;
+for (int i = 0; i < 10; ++i) {
+        double avgEnergy_B = (HitCounts[i] > 0) ? edep_B[i] / HitCounts[i] : 0.0;
+        yValues_mean_energy_B.push_back(avgEnergy_B);
+        
+         
+         cout << "Rango " << i + 1 << " (" << (i * 0.24) + 0.1 << " GeV - " << ((i + 1) * 0.24) + 0.1
+             << " GeV):     " << HitCounts[i] << " hits,        " << edep_B[i] << "  suma de energia depositada en B. " 
+             << "       Promedio:     " << avgEnergy_B << " MeV " << endl; 
+    }
+cout << "\n"<< endl; 
+
+
+
+//...................................|  MEAN ENERGY PLOTS (TOTAL, for A and for B) |...................................
+
+TCanvas* canvas_8 = new TCanvas("average_edep_canvas_8", "Average Energy Loss vs Transverse Momentum for muons with absorber", 1600, 1200);
+    TGraph* graph_8 = new TGraph(xValues.size(), &xValues[0], &yValues_mean_energy[0]);
+    //TGraph* NoAbs = new TGraph(xValues2.size(), &xValues2[0], &yValues2[0]);
+    graph_8->SetTitle("Average Energy Loss vs Transverse Momentum for Muons with absorber");
+    graph_8->SetMarkerStyle(22);
+    graph_8->SetMarkerColor(kBlue-2); 
+    graph_8->SetMarkerSize(1.5);
+    graph_8->GetXaxis()->SetTitle("Momentum [GeV]");
+  
+    graph_8->GetYaxis()->SetTitle("Average Energy Loss [MeV]");
+
+    graph_8->Draw("AP");
+
+    //NoAbs->SetMarkerStyle(21);
+    //NoAbs->SetMarkerColor(kBlue);
+    
+    //NoAbs->Draw("P SAME");
+
+    // Añadir leyenda
+    TLegend* legend_8 = new TLegend(0.7, 0.7, 0.9, 0.9);
+    legend_8->AddEntry(graph_8, "WITH ABSORBER", "lp");
+    //legend->AddEntry(NoAbs, "NO ABSORBER", "lp");
+    legend_8->Draw();
+
+    canvas_8->SetGrid();
+    canvas_8->Update();
+
+
+
+TCanvas* canvas_9 = new TCanvas("average_edep_canvas_9", "Average Energy Loss vs Transverse Momentum for muons with absorber in Layer A", 1600, 1200);
+    TGraph* graph_9 = new TGraph(xValues.size(), &xValues[0], &yValues_mean_energy_A[0]);
+    //TGraph* NoAbs = new TGraph(xValues2.size(), &xValues2[0], &yValues2[0]);
+    graph_9->SetTitle("Average Energy Loss vs Transverse Momentum for Muons with absorber  in Layer A");
+    graph_9->SetMarkerStyle(22);
+    graph_9->SetMarkerColor(kRed+2); 
+    graph_9->SetMarkerSize(1.5);
+    graph_9->GetXaxis()->SetTitle("Momentum [GeV]");
+  
+    graph_9->GetYaxis()->SetTitle("Average Energy Loss in Layer A [MeV]");
+
+    graph_9->Draw("AP");
+
+    //NoAbs->SetMarkerStyle(21);
+    //NoAbs->SetMarkerColor(kBlue);
+    
+    //NoAbs->Draw("P SAME");
+
+    // Añadir leyenda
+    TLegend* legend_9 = new TLegend(0.7, 0.7, 0.9, 0.9);
+    legend_9->AddEntry(graph_9, "WITH ABSORBER", "lp");
+    //legend->AddEntry(NoAbs, "NO ABSORBER", "lp");
+    legend_9->Draw();
+
+    canvas_9->SetGrid();
+    canvas_9->Update();
+
+
+
+TCanvas* canvas_10 = new TCanvas("average_edep_canvas_10", "Average Energy Loss vs Transverse Momentum for muons with absorber  in Layer B", 1600, 1200);
+    TGraph* graph_10 = new TGraph(xValues.size(), &xValues[0], &yValues_mean_energy_B[0]);
+    //TGraph* NoAbs = new TGraph(xValues2.size(), &xValues2[0], &yValues2[0]);
+    graph_10->SetTitle("Average Energy Loss vs Transverse Momentum for Muons with absorber in Layer B");
+    graph_10->SetMarkerStyle(22);
+    graph_10->SetMarkerColor(kViolet-6); 
+    graph_10->SetMarkerSize(1.5);
+    graph_10->GetXaxis()->SetTitle("Momentum [GeV]");
+  
+    graph_10->GetYaxis()->SetTitle("Average Energy Loss in Layer B [MeV]");
+
+    graph_10->Draw("AP");
+
+    //NoAbs->SetMarkerStyle(21);
+    //NoAbs->SetMarkerColor(kBlue);
+    
+    //NoAbs->Draw("P SAME");
+
+    // Añadir leyenda
+    TLegend* legend_10 = new TLegend(0.7, 0.7, 0.9, 0.9);
+    legend_10->AddEntry(graph_10, "WITH ABSORBER", "lp");
+    //legend->AddEntry(NoAbs, "NO ABSORBER", "lp");
+    legend_10->Draw();
+
+    canvas_10->SetGrid();
+    canvas_10->Update();
+
+
+//===================================================== TOTAL DETECTED PHOTONS  ======================================================
+
+TCanvas *canvas_11 = new TCanvas("canvas_11", "Histogram Total Detected Photons for Muons with absorber", 1600, 1200);
+TH1D *photons_detected = new TH1D("Total_detected_photons", "Total detected photons for muons with absorber", 97, 0,5000);
+
+photons_detected->SetLineColor(kGreen);
+photons_detected->SetFillColor(kGreen);
+photons_detected->SetFillStyle(3001);
+
+
+
+for (Long64_t i = 0; i < nEntries; ++i) {
+    tree->GetEntry(i);
+    if (total_detected_gammas > 0 ){
+    photons_detected->Fill(total_detected_gammas);  
+    }   
+}
+photons_detected->SetTitle("Total detected photons with absorber 70 cm thick  Muons");
+photons_detected->GetXaxis()->SetTitle("Photons");
+photons_detected->GetYaxis()->SetTitle("Entries");
+
+photons_detected->Draw("HIST");
+
+canvas_11->SetGrid();
+canvas_11->Update();
+
+
+//================================ TOTAL GENERATED PHOTONS ================================
+
+TCanvas *canvas_12 = new TCanvas("canvas_12", "Histogram Total Generated Photons Absorber 70 cm muons", 1600, 1200);
+TH1D *photons_generated = new TH1D("Total_generated_photons", "Total generated photons muons", 92, 0,220000);
+
+photons_generated->SetLineColor(kBlue);
+photons_generated->SetFillColor(kBlue);
+photons_generated->SetFillStyle(3001);
+
+
+for (Long64_t i = 0; i < nEntries; ++i) {
+    tree->GetEntry(i);
+    if (total_generated_gammas > 0 ){
+    photons_generated->Fill(total_generated_gammas);  
+    }   
+}
+
+photons_generated->SetTitle("Total generated photons with absorber 70 cm thick  Muons");
+photons_generated->GetXaxis()->SetTitle("Photons");
+photons_generated->GetYaxis()->SetTitle("Entries");
+
+photons_generated->Draw("HIST");
+
+canvas_12->SetGrid();
+canvas_12->Update();
+
+
+
+//=====================================================  [A] TOTAL DETECTED PHOTONS  ======================================================
+
+TCanvas *canvas_13 = new TCanvas("canvas_13", "Histogram Total Detected Photons for Muons with absorber in layer A", 1600, 1200);
+TH1D *photons_detected_A = new TH1D("Total_detected_photons", "Total detected photons for muons with absorber in layer A", 92, 0,3500);
+
+photons_detected_A->SetLineColor(kCyan+3);
+photons_detected_A->SetFillColor(kCyan+3);
+photons_detected_A->SetFillStyle(3004);
+
+
+
+for (Long64_t i = 0; i < nEntries; ++i) {
+    tree->GetEntry(i);
+    if (total_detected_photons_layer_A > 0 ){
+    photons_detected_A->Fill(total_detected_photons_layer_A);  
+    }   
+}
+photons_detected_A->SetTitle("Total detected photons with absorber 70 cm thick Muons in layer A");
+photons_detected_A->GetXaxis()->SetTitle("Photons");
+photons_detected_A->GetYaxis()->SetTitle("Entries");
+
+photons_detected_A->Draw("HIST");
+
+canvas_13->SetGrid();
+canvas_13->Update();
+
+
+//================================================  [A] TOTAL GENERATED PHOTONS  ========================================================
+
+TCanvas *canvas_14 = new TCanvas("canvas_14", "Histogram Total Generated Photons Absorber 70 cm muons  in layer A", 1600, 1200);
+TH1D *photons_generated_A = new TH1D("Total_generated_photons", "Total generated photons muons  in layer A", 92, 0,140000);
+
+photons_generated_A->SetLineColor(kMagenta+2);
+photons_generated_A->SetFillColor(kMagenta+2);
+photons_generated_A->SetFillStyle(3005);
+
+
+for (Long64_t i = 0; i < nEntries; ++i) {
+    tree->GetEntry(i);
+    if (total_generated_photons_layer_A > 0 ){
+    photons_generated_A->Fill(total_generated_photons_layer_A);  
+    }   
+}
+
+photons_generated_A->SetTitle("Total generated photons with absorber 70 cm thick Muons in layer A");
+photons_generated_A->GetXaxis()->SetTitle("Photons");
+photons_generated_A->GetYaxis()->SetTitle("Entries");
+
+photons_generated_A->Draw("HIST");
+
+canvas_14->SetGrid();
+canvas_14->Update();
+
+
+//=====================================================  [B] TOTAL DETECTED PHOTONS  ======================================================
+
+TCanvas *canvas_15 = new TCanvas("canvas_15", "Histogram Total Detected Photons for Muons with absorber in layer B", 1600, 1200);
+TH1D *photons_detected_B = new TH1D("Total_detected_photons", "Total detected photons for muons with absorber in layer B", 92, 0,4600);
+
+photons_detected_B->SetLineColor(kOrange+7);
+photons_detected_B->SetFillColor(kOrange+7);
+photons_detected_B->SetFillStyle(3009);
+
+
+
+for (Long64_t i = 0; i < nEntries; ++i) {
+    tree->GetEntry(i);
+    if (total_detected_photons_layer_B > 0 ){
+    photons_detected_B->Fill(total_detected_photons_layer_B);  
+    }   
+}
+photons_detected_B->SetTitle("Total detected photons with absorber 70 cm thick Muons in layer B");
+photons_detected_B->GetXaxis()->SetTitle("Photons");
+photons_detected_B->GetYaxis()->SetTitle("Entries");
+
+photons_detected_B->Draw("HIST");
+
+canvas_15->SetGrid();
+canvas_15->Update();
+
+
+//================================  [B] TOTAL GENERATED PHOTONS  ================================
+
+TCanvas *canvas_16 = new TCanvas("canvas_16", "Histogram Generated Photons Absorber 70 cm muons in layer B", 1600, 1200);
+TH1D *photons_generated_B = new TH1D("Total_generated_photons", "Generated photons in layer B for muons", 91, 0,160000);
+
+photons_generated_B->SetLineColor(kAzure-5);
+photons_generated_B->SetFillColor(kAzure-5);
+photons_generated_B->SetFillStyle(3010);
+
+
+for (Long64_t i = 0; i < nEntries; ++i) {
+    tree->GetEntry(i);
+    if (total_generated_photons_layer_B > 0 ){
+    photons_generated_B->Fill(total_generated_photons_layer_B);  
+    }   
+}
+
+photons_generated_B->SetTitle("Total generated photons with absorber 70 cm thick Muons in layer B");
+photons_generated_B->GetXaxis()->SetTitle("Photons");
+photons_generated_B->GetYaxis()->SetTitle("Entries");
+
+photons_generated_B->Draw("HIST");
+
+canvas_16->SetGrid();
+canvas_16->Update();
+
+
+
+//======================================  TOTAL / AVERAGE PHOTONS DETECTION / GENERATION VS MOMENTUM  =========================================
 
 
 
 
 
+//======================================  DISPERSSION ANGLE RESPECT TO AXIS Y  ======================================
+
+
+// In layer B
+
+TCanvas *canvas_36 = new TCanvas("canvas_36", "Histogram angle dispersion Abs 70 cm for layer B", 1600, 1200);
+TH1D *graph_36 = new TH1D("dispersion_angle_B", "Angle dispersion in layer B", 93, 0, 6.2);
+
+graph_36->SetLineColor(kSpring+2);
+graph_36->SetFillColor(kSpring+2);
+graph_36->SetFillStyle(3011);
 
 
 
+for (Long64_t i = 0; i < nEntries; ++i) {
+    tree->GetEntry(i);
+    if (angle_b >= 0 ){
+        graph_36->Fill(angle_b);  
+   }   
+}
 
+graph_36->SetTitle("Dispersion angle by hits in with absorber 70 cm thick Muons in layer B");
+graph_36->GetXaxis()->SetTitle("Degrees °");
+graph_36->GetYaxis()->SetTitle("Entries");
+
+graph_36->Draw("HIST");
+
+canvas_36->SetGrid();
+canvas_36->Update();
+
+
+//IN layer A
+
+TCanvas *canvas_37 = new TCanvas("canvas_37", "Histogram angle dispersion Abs 70 cm for layer A", 1600, 1200);
+TH1D *graph_37 = new TH1D("dispersion_angle_B", "Angle dispersion in layer A", 92, 0, 6.2);
+
+graph_37->SetLineColor(kAzure+7);
+graph_37->SetFillColor(kAzure+7);
+graph_37->SetFillStyle(3012);
+
+
+
+for (Long64_t i = 0; i < nEntries; ++i) {
+    tree->GetEntry(i);
+    if (angle_a >= 0 ){
+        graph_37->Fill(angle_a);  
+   }   
+}
+
+graph_37->SetTitle("Dispersion angle by hits in with absorber 70 cm thick Muons in layer A");
+graph_37->GetXaxis()->SetTitle("Degrees °");
+graph_37->GetYaxis()->SetTitle("Entries");
+
+graph_37->Draw("HIST");
+
+canvas_37->SetGrid();
+canvas_37->Update();
 
 }
 
